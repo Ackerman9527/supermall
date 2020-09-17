@@ -1,125 +1,142 @@
 <template>
+  <div id="category">
+    <nav-bar class="nav-bar"><div slot="center">商品分类</div></nav-bar>
+    <div class="content">
+      <tab-menu :categories="categories"
+                @selectItem="selectItem"></tab-menu>
 
-<div class="content" ref="aaaa">
-  <ul class="wrapper">
-    <li>wos1</li>
-    <li>wos2</li>
-    <li>wos3</li>
-    <li>wos4</li>
-    <li>wos5</li>
-    <li>wos6</li>
-    <li>wos7</li>
-    <li>wos8</li>
-    <li>wos9</li>
-    <li>wos10</li>
-    <li>wos11</li>
-    <li>wos12</li>
-    <li>wos13</li>
-    <li>wos14</li>
-    <li>wos15</li>
-    <li>wos16</li>
-    <li>wos17</li>
-    <li>wos18</li>
-    <li>wos19</li>
-    <li>wos20</li>
-    <li>wos21</li>
-    <li>wos22</li>
-    <li>wos23</li>
-    <li>wos24</li>
-    <li>wos25</li>
-    <li>wos26</li>
-    <li>wos27</li>
-    <li>wos28</li>
-    <li>wos29</li>
-    <li>wos30</li>
-    <li>wos31</li>
-    <li>wos32</li>
-    <li>wos33</li>
-    <li>wos34</li>
-    <li>wos35</li>
-    <li>wos36</li>
-    <li>wos37</li>
-    <li>wos38</li>
-    <li>wos39</li>
-    <li>wos40</li>
-    <li>wos41</li>
-    <li>wos42</li>
-    <li>wos43</li>
-    <li>wos44</li>
-    <li>wos45</li>
-    <li>wos46</li>
-    <li>wos47</li>
-    <li>wos48</li>
-    <li>wos49</li>
-    <li>wos50</li>
-    <li>wos51</li>
-    <li>wos52</li>
-    <li>wos53</li>
-    <li>wos54</li>
-    <li>wos55</li>
-    <li>wos56</li>
-    <li>wos57</li>
-    <li>wos58</li>
-    <li>wos59</li>
-    <li>wos60</li>
-    <li>wos61</li>
-    <li>wos62</li>
-    <li>wos63</li>
-    <li>wos64</li>
-    <li>wos65</li>
-    <li>wos66</li>
-    <li>wos67</li>
-    <li>wos68</li>
-    <li>wos69</li>
-    <li>wos70</li>
-    <li>wos71</li>
-    <li>wos72</li>
-    <li>wos73</li>
-    <li>wos74</li>
-    <li>wos75</li>
-    <li>wos76</li>
-    <li>wos77</li>
-    <li>wos78</li>
-    <li>wos79</li>
-    <li>wos80</li>
-  </ul>
-</div>
+      <scroll id="tab-content" :data="[categoryData]">
+        <div>
+          <tab-content-category :subcategories="showSubcategory"></tab-content-category>
+          <tab-control :titles="['综合', '新品', '销量']"
+                       @itemClick="tabClick"></tab-control>
+          <tab-content-detail :category-detail="showCategoryDetail"></tab-content-detail>
+        </div>
+      </scroll>
+    </div>
+  </div>
 </template>
 
 <script>
-  import BScroll from  'better-scroll'
+  import NavBar from 'components/common/navbar/NavBar'
 
-    export default {
-        name: "Category",
-       data(){
-          return{
-            scroll:null
+  import TabMenu from './childComps/TabMenu'
+  import TabControl from 'components/content/tabControl/tabControl'
+  import Scroll from 'components/common/scroll/scroll'
+  import TabContentCategory from './childComps/TabContentCategory'
+  import TabContentDetail from './childComps/TabContentDetail'
+
+  import {getCategory, getSubcategory, getCategoryDetail} from "network/category";
+  import {POP, SELL, NEW} from "@/common/const";
+  import {tabControlMixin} from "@/common/mixin";
+
+  export default {
+		name: "Category",
+    components: {
+		  NavBar,
+      TabMenu,
+      TabControl,
+      Scroll,
+      TabContentCategory,
+      TabContentDetail
+    },
+    mixins: [tabControlMixin],
+    data() {
+		  return {
+		    categories: [],
+        categoryData: {
+        },
+        currentIndex: -1
+      }
+    },
+    created() {
+		  // 1.请求分类数据
+      this._getCategory()
+    },
+    computed: {
+		  showSubcategory() {
+		    if (this.currentIndex === -1) return {}
+        return this.categoryData[this.currentIndex].subcategories
+      },
+      showCategoryDetail() {
+		    if (this.currentIndex === -1) return []
+		    return this.categoryData[this.currentIndex].categoryDetail[this.currentType]
+      }
+    },
+    methods: {
+		  _getCategory() {
+		    getCategory().then(res => {
+		      // 1.获取分类数据
+		      this.categories = res.data.category.list
+          // 2.初始化每个类别的子数据
+          for (let i = 0; i < this.categories.length; i++) {
+            this.categoryData[i] = {
+              subcategories: {},
+              categoryDetail: {
+                'pop': [],
+                'new': [],
+                'sell': []
+              }
+            }
           }
-       },
-      mounted() {
-          this.scroll=new BScroll(document.querySelector('.content'),{
-             probeType:3,
-
-             pullUpLoad:true,
-             click:true,
-
-          })
-        this.scroll.on('scroll',(position) =>{
+          // 3.请求第一个分类的数据
+          this._getSubcategories(0)
         })
-        this.scroll.on('pullingUp',() =>{
-          console.log('加载');
+      },
+      _getSubcategories(index) {
+        this.currentIndex = index;
+		    const mailKey = this.categories[index].maitKey;
+        getSubcategory(mailKey).then(res => {
+          this.categoryData[index].subcategories = res.data
+          this.categoryData = {...this.categoryData}
+          this._getCategoryDetail(POP)
+          this._getCategoryDetail(SELL)
+          this._getCategoryDetail(NEW)
         })
-
+      },
+      _getCategoryDetail(type) {
+		    // 1.获取请求的miniWallkey
+        const miniWallkey = this.categories[this.currentIndex].miniWallkey;
+        // 2.发送请求,传入miniWallkey和type
+		    getCategoryDetail(miniWallkey, type).then(res => {
+		      // 3.将获取的数据保存下来
+		      this.categoryData[this.currentIndex].categoryDetail[type] = res
+          this.categoryData = {...this.categoryData}
+        })
+      },
+      /**
+       * 事件响应相关的方法
+       */
+      selectItem(index) {
+        this._getSubcategories(index)
       }
     }
-
+	}
 </script>
 
 <style scoped>
-  .content{
-    height: 200px;
-    background-color: pink;
-    /*overflow: auto;*/
-    overflow: hidden;
+  #category {
+    height: 100vh;
+  }
+
+  .nav-bar {
+    background-color: var(--color-tint);
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 44px;
+    bottom: 49px;
+
+    display: flex;
+  }
+
+  #tab-content {
+    height: 100%;
+    flex: 1;
   }
 </style>

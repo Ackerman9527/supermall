@@ -5,9 +5,11 @@ import VueRouter from 'vue-router'
 
 const home = () => import('../views/home/Home')
 const cart = () => import('../views/cart/Cart')
-const Me = () => import('../views/me/Me')
+// const Me = () => import('../views/me/Me')
+const profile = () => import('../views/profile/Profile')
 const category = () => import('../views/category/Category')
 const Detail = () => import('../views/detail/Detail')
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -24,8 +26,8 @@ const routes = [
     path:'/category',
     component: category
   },{
-    path:'/me',
-    component: Me
+    path:'/Profile',
+    component: profile
   },{
     path:'/detail/:iid',
     component:Detail

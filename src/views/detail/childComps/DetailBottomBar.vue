@@ -26,6 +26,7 @@
 		name: "DetailBottomBar",
     methods: {
       addToCart() {
+        console.log('添加到购物车');
         this.$emit('addToCart')
       }
     }
@@ -63,7 +64,7 @@
     width: 22px;
     height: 22px;
     margin: 10px auto 3px;
-    background: url("~assets/img/detail/detail_bottom.png") 0 0/100%;
+    background: url("~assets/images/detail/detail_bottom.png") 0 0/100%;
   }
 
   .bar-left .service {

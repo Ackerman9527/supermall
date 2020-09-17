@@ -11,6 +11,7 @@ module.exports={
       //set第一个参数：设置的别名，第二个参数：设置的路径
       .set('@',resolve('./src'))
       .set('components',resolve('./src/components'))
+      .set('common',resolve('./src/common'))
       .set('assets',resolve('./src/assets'))
       .set('views',resolve('./src/views'))
       .set('network',resolve('./src/network'))

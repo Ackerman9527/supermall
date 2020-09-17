@@ -38,7 +38,7 @@
 		        if(++this.counter === this.imagesLength){
 		          this.$emit('imageLoad')
             }
-            console.log(this.imagesLength);
+            // console.log(this.imagesLength);
         }
     },
     watch :{
